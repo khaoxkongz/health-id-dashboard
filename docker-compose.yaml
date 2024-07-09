@@ -1,0 +1,13 @@
+services:
+  mongodb:
+    image: mongo
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb_data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME={{USERNAME_MONGO}}
+      - MONGO_INITDB_ROOT_PASSWORD={{PWD_MONGO}}
+
+volumes:
+  mongodb_data:
