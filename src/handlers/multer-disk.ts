@@ -30,10 +30,10 @@ export default class MulterDiskHandler implements IMulterDiskHandler {
       const subdistrictMap = new Map(subdistricts.map((s) => [s.nameTh, s._id]));
 
       for await (const row of stream) {
-        const subdistrictId = subdistrictMap.get(row.subdistrict_health as string);
-        if (!subdistrictId) continue;
-
         if (row.organization_code) {
+          const subdistrictId = subdistrictMap.get(row.subdistrict_health as string);
+          if (!subdistrictId) continue;
+
           batch.push({
             updateOne: {
               filter: { code: row.organization_code },

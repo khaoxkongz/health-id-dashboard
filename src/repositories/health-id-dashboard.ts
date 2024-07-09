@@ -28,14 +28,24 @@ export default class HealthIdDashboardRepository implements IHealthIdDashboardRe
 
     if (orgsArr.length > 0) {
       conditions.push({ organizationCode: { $in: orgsArr } });
-    } else if (subsArr.length > 0) {
+    }
+
+    if (subsArr.length > 0) {
       conditions.push({ subdistrictName: { $in: subsArr } });
-    } else if (distsArr.length > 0) {
+    }
+
+    if (distsArr.length > 0) {
       conditions.push({ districtName: { $in: distsArr } });
-    } else if (provsArr.length > 0) {
+    }
+
+    if (provsArr.length > 0) {
       conditions.push({ provinceName: { $in: provsArr } });
-    } else if (regsArr.length > 0) {
-      conditions.push({ regionName: { $in: regsArr.map((reg) => `เขตสุขภาพที่ ${reg}`) } });
+    }
+
+    if (regsArr.length > 0) {
+      conditions.push({
+        regionName: { $in: regsArr.map((reg) => `เขตสุขภาพที่ ${reg}`) },
+      });
     }
 
     if (search) {

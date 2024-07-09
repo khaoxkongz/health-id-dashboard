@@ -76,17 +76,27 @@ export default class MulterMemmoryHandler implements IMulterMemmoryHandler {
           });
 
           if (batch.length === batchSize) {
-            await Region.bulkWrite(batch);
-            batch = [];
-            count++;
-            console.log(count);
+            try {
+              await Region.bulkWrite(batch);
+              count++;
+              console.log(`Processed batch ${count}`);
+              batch = [];
+            } catch (error) {
+              console.error('Error processing batch:', error);
+              return res.status(500).send('Error processing batch');
+            }
           }
         }
 
         if (batch.length > 0) {
-          await Region.bulkWrite(batch);
-          count++;
-          console.log(count);
+          try {
+            await Region.bulkWrite(batch);
+            count++;
+            console.log(`Processed final batch ${count}`);
+          } catch (error) {
+            console.error('Error processing final batch:', error);
+            return res.status(500).send('Error processing final batch');
+          }
         }
 
         console.log('Data imported successfully');
@@ -119,33 +129,47 @@ export default class MulterMemmoryHandler implements IMulterMemmoryHandler {
         const regionMap = new Map(regions.map((reg) => [reg.code.toString(), reg._id]));
 
         for (const province of provinces) {
-          batch.push({
-            updateOne: {
-              filter: { code: province.code },
-              update: {
-                $set: {
-                  code: province.code,
-                  nameTh: province.nameTh,
-                  nameEn: province.nameEn,
-                  regionId: regionMap.get(province.regionId),
-                },
-              },
-              upsert: true,
-            },
-          });
+          if (province.code) {
+            const regionId = regionMap.get(province.regionId);
+            if (!regionId) continue;
 
-          if (batch.length === batchSize) {
-            await Province.bulkWrite(batch);
-            batch = [];
-            count++;
-            console.log(count);
+            batch.push({
+              updateOne: {
+                filter: { code: province.code },
+                update: {
+                  $set: {
+                    nameTh: province.nameTh || 'Unknown',
+                    nameEn: province.nameEn || 'Unknown',
+                    regionId: regionId || null,
+                  },
+                },
+                upsert: true,
+              },
+            });
+
+            if (batch.length === batchSize) {
+              try {
+                await Province.bulkWrite(batch);
+                count++;
+                console.log(`Processed batch ${count}`);
+                batch = [];
+              } catch (error) {
+                console.error('Error processing batch:', error);
+                return res.status(500).send('Error processing batch');
+              }
+            }
           }
         }
 
         if (batch.length > 0) {
-          await Province.bulkWrite(batch);
-          count++;
-          console.log(count);
+          try {
+            await Province.bulkWrite(batch);
+            count++;
+            console.log(`Processed final batch ${count}`);
+          } catch (error) {
+            console.error('Error processing final batch:', error);
+            return res.status(500).send('Error processing final batch');
+          }
         }
 
         console.log('Data imported successfully');
@@ -178,33 +202,49 @@ export default class MulterMemmoryHandler implements IMulterMemmoryHandler {
         const provinceMap = new Map(provinces.map((prov) => [prov.code.toString(), prov._id]));
 
         for (const district of districts) {
-          batch.push({
-            updateOne: {
-              filter: { code: district.id },
-              update: {
-                $set: {
-                  code: district.id,
-                  nameTh: district.name_th,
-                  nameEn: district.name_en,
-                  provinceId: provinceMap.get(district.province_id),
-                },
-              },
-              upsert: true,
-            },
-          });
+          if (district.id) {
+            const provinceId = provinceMap.get(district.province_id);
+            if (!provinceId) continue;
 
-          if (batch.length === batchSize) {
-            await District.bulkWrite(batch);
-            batch = [];
-            count++;
-            console.log(count);
+            batch.push({
+              updateOne: {
+                filter: { code: district.id },
+                update: {
+                  $set: {
+                    nameTh: district.name_th,
+                    nameEn: district.name_en,
+                    provinceId: provinceMap.get(district.province_id),
+                  },
+                },
+                upsert: true,
+              },
+            });
+
+            if (batch.length === batchSize) {
+              try {
+                await District.bulkWrite(batch);
+                batch = [];
+                count++;
+                console.log(count);
+                console.log(`Processed batch ${count}`);
+              } catch (error) {
+                console.error('Error processing batch:', error);
+                return res.status(500).send('Error processing batch');
+              }
+            }
           }
         }
 
         if (batch.length > 0) {
-          await District.bulkWrite(batch);
-          count++;
-          console.log(count);
+          try {
+            await District.bulkWrite(batch);
+            count++;
+            console.log(count);
+            console.log(`Processed final batch ${count}`);
+          } catch (error) {
+            console.error('Error processing final batch:', error);
+            return res.status(500).send('Error processing final batch');
+          }
         }
 
         console.log('Data imported successfully');
@@ -237,34 +277,49 @@ export default class MulterMemmoryHandler implements IMulterMemmoryHandler {
         const districtMap = new Map(districts.map((dist) => [dist.code.toString(), dist._id]));
 
         for (const subdistrict of subdistricts) {
-          batch.push({
-            updateOne: {
-              filter: { code: subdistrict.id },
-              update: {
-                $set: {
-                  code: subdistrict.id,
-                  nameTh: subdistrict.name_th,
-                  nameEn: subdistrict.name_en,
-                  zipcode: subdistrict.zipcode,
-                  districtId: districtMap.get(subdistrict.amphure_id),
-                },
-              },
-              upsert: true,
-            },
-          });
+          if (subdistrict.id) {
+            const districtId = districtMap.get(subdistrict.amphure_id);
+            if (!districtId) continue;
 
-          if (batch.length === batchSize) {
-            await Subdistrict.bulkWrite(batch);
-            batch = [];
-            count++;
-            console.log(count);
+            batch.push({
+              updateOne: {
+                filter: { code: subdistrict.id },
+                update: {
+                  $set: {
+                    code: subdistrict.id,
+                    nameTh: subdistrict.name_th,
+                    nameEn: subdistrict.name_en,
+                    zipcode: subdistrict.zipcode,
+                    districtId: districtMap.get(subdistrict.amphure_id),
+                  },
+                },
+                upsert: true,
+              },
+            });
+
+            if (batch.length === batchSize) {
+              try {
+                await Subdistrict.bulkWrite(batch);
+                batch = [];
+                count++;
+                console.log(`Processed final batch ${count}`);
+              } catch (error) {
+                console.error('Error processing batch:', error);
+                return res.status(500).send('Error processing batch');
+              }
+            }
           }
         }
 
         if (batch.length > 0) {
-          await Subdistrict.bulkWrite(batch);
-          count++;
-          console.log(count);
+          try {
+            await Subdistrict.bulkWrite(batch);
+            count++;
+            console.log(`Processed final batch ${count}`);
+          } catch (error) {
+            console.error('Error processing final batch:', error);
+            return res.status(500).send('Error processing final batch');
+          }
         }
 
         console.log('Data imported successfully');
