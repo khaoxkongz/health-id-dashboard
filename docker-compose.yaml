@@ -5,9 +5,19 @@ services:
       - 27017:27017
     volumes:
       - mongodb_data:/data/db
+  health-id-db:
+    image: mcr.microsoft.com/mssql/server
+    container_name: health-id-mssql
     environment:
-      - MONGO_INITDB_ROOT_USERNAME={{USERNAME_MONGO}}
-      - MONGO_INITDB_ROOT_PASSWORD={{PWD_MONGO}}
+      ACCEPT_EULA: 'Y'
+      SA_PASSWORD: 'Onewkub@123'
+      MSSQL_PID: 'Express'
+      TZ: Asia/Bangkok
+    ports:
+      - '1433:1433'
+    volumes:
+      - health-id-volume:/var/opt/mssql
 
 volumes:
   mongodb_data:
+  health-id-volume:

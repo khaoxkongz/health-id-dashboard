@@ -1,0 +1,97 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model Region {
+  id        String     @id @db.VarChar(10)
+  name      String     @db.NVarChar(100)
+  provinces Province[]
+
+  @@map("regions")
+}
+
+model Province {
+  id     String @id @db.VarChar(10)
+  nameTh String @map("name_th") @db.NVarChar(100)
+  nameEn String @map("name_en") @db.VarChar(100)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  regionId  String     @db.VarChar(10)
+  region    Region     @relation(fields: [regionId], references: [id])
+  districts District[]
+
+  @@map("provinces")
+}
+
+model District {
+  id     String @id @db.VarChar(10)
+  nameTh String @map("name_th") @db.NVarChar(100)
+  nameEn String @map("name_en") @db.VarChar(100)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  provinceId   String        @db.VarChar(10)
+  province     Province      @relation(fields: [provinceId], references: [id])
+  subdistricts Subdistrict[]
+
+  @@map("districts")
+}
+
+model Subdistrict {
+  id      String @id @db.VarChar(10)
+  zipcode String @db.VarChar(5)
+  nameTh  String @map("name_th") @db.NVarChar(100)
+  nameEn  String @map("name_en") @db.VarChar(100)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  districtId String   @db.VarChar(10)
+  district   District @relation(fields: [districtId], references: [id])
+
+  healthDashboards HealthIdDashboard[]
+
+  @@map("subdistricts")
+}
+
+model HealthIdDashboard {
+  id Int @id @default(autoincrement())
+
+  organizationCode  String  @map("organization_code") @db.VarChar(20)
+  organizationName  String? @map("organization_name") @db.NVarChar(255)
+  departmentHealth  String? @map("department_health") @db.NVarChar(100)
+  serviceAreaHealth String? @map("service_area_health") @db.NVarChar(100)
+  officeTypeHealth  String? @map("office_type_health") @db.NVarChar(100)
+  affiliationHealth String? @map("affiliation_health") @db.NVarChar(100)
+
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+  deletedAt DateTime? @map("deleted_at")
+
+  subdistrictId String?      @db.VarChar(10)
+  subdistrict   Subdistrict? @relation(fields: [subdistrictId], references: [id])
+
+  ialStatus                String?   @map("ial_status") @db.NVarChar(50)
+  countIal                 Int?      @map("count_ial")
+  ekycConfirmTokenCount    Int?      @map("ekyc_confirm_token_count")
+  isMophPersonnel          Boolean?  @map("is_moph_personnel")
+  offsetUnitTenThousandIdp Int?      @map("offset_unit_ten_thousand_idp")
+  offsetUnitTenThousandIal Int?      @map("offset_unit_ten_thousand_ial")
+  totalPopulation          Int?      @map("total_population")
+  dateCutoff               DateTime? @map("date_cutoff") @db.Time
+  weekNo                   Int?      @map("week_no")
+  timeDateCutoff           DateTime? @map("time_date_cutoff") @db.Time
+
+  @@map("health_id_dashboards")
+}
