@@ -2,11 +2,6 @@ import { IALStat } from '../models';
 import { IIALStat } from '../models/type';
 import { FilterBodyConditions, IHealthIdDashboardRepository } from '../repositories/health-id-dashboard';
 
-enum IALStatus {
-  OTP = 'ยืนยันด้วย OTP',
-  IDCard = 'ยืนยันตัวตนด้วยบัตรประชาชน',
-}
-
 export interface IHealthIdDashboardUsecase {
   fecthTable(filterParams: FilterBodyConditions): Promise<any>;
 }
@@ -49,13 +44,9 @@ export default class HealthIdDashboardUsecase implements IHealthIdDashboardUseca
       let countIdOtp = 0;
       let countIdCard = 0;
 
-      stat.ialStats.forEach(({ status, count }: { status: string; count: number }) => {
-        if (status === IALStatus.OTP) {
-          countIdOtp += count;
-        } else if (status === IALStatus.IDCard) {
-          countIdCard += count;
-        }
-      });
+      if (stat.ialStats['ยืนยันด้วย OTP']) countIdOtp += stat.ialStats['ยืนยันด้วย OTP'];
+
+      if (stat.ialStats['ยืนยันด้วยบัตรประชาชน']) countIdCard += stat.ialStats['ยืนยันด้วยบัตรประชาชน'];
 
       return total + countIdOtp + countIdCard;
     }, 0);
@@ -66,13 +57,9 @@ export default class HealthIdDashboardUsecase implements IHealthIdDashboardUseca
       let countIdOtp = 0;
       let countIdCard = 0;
 
-      stat.ialStats.forEach(({ status, count }: { status: string; count: number }) => {
-        if (status === IALStatus.OTP) {
-          countIdOtp += count;
-        } else if (status === IALStatus.IDCard) {
-          countIdCard += count;
-        }
-      });
+      if (stat.ialStats['ยืนยันด้วย OTP']) countIdOtp += stat.ialStats['ยืนยันด้วย OTP'];
+
+      if (stat.ialStats['ยืนยันด้วยบัตรประชาชน']) countIdCard += stat.ialStats['ยืนยันด้วยบัตรประชาชน'];
 
       const totalCountId = countIdOtp + countIdCard;
 

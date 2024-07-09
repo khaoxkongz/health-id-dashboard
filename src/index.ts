@@ -45,14 +45,18 @@ const shutdown = async (signal: string, httpServer: Server): Promise<void> => {
   console.log('HTTP server closed');
 };
 
-const startServer = (): void => {
-  connectToDatabase().then(() => {
+const startServer = async (): Promise<void> => {
+  try {
+    await connectToDatabase();
+
     const server = createServer();
     const httpServer = server.listen(PORT, () => console.log(`Server is listening on http://127.0.0.1:${PORT}`));
 
     process.on('SIGINT', () => shutdown('SIGINT', httpServer));
     process.on('SIGTERM', () => shutdown('SIGTERM', httpServer));
-  });
+  } catch (error) {
+    console.error('Error during starting server:', error);
+  }
 };
 
 startServer();

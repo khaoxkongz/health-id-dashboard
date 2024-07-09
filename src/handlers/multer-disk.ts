@@ -30,27 +30,33 @@ export default class MulterDiskHandler implements IMulterDiskHandler {
       const subdistrictMap = new Map(subdistricts.map((s) => [s.nameTh, s._id]));
 
       for await (const row of stream) {
-        if (!this.validateRowOrg(row)) anyArr.push(row);
+        const subdistrictId = subdistrictMap.get(row.subdistrict_health as string);
+        if (!subdistrictId) continue;
 
-        batch.push({
-          updateOne: {
-            filter: { code: row.organization_code },
-            update: {
-              $set: { name: row.organization_name, subdistrictId: subdistrictMap.get(row.subdistrict_health) },
+        if (row.organization_code) {
+          batch.push({
+            updateOne: {
+              filter: { code: row.organization_code },
+              update: {
+                $set: {
+                  name: row.organization_name || 'Unknown',
+                  subdistrictId: subdistrictId || null,
+                },
+              },
+              upsert: true,
             },
-            upsert: true,
-          },
-        });
+          });
 
-        if (batch.length >= batchSize) {
-          try {
-            await Organization.bulkWrite(batch);
-            count++;
-            console.log(count);
-            batch = [];
-          } catch (error) {
-            console.error('Error processing batch:', error);
-            throw error;
+          if (batch.length >= batchSize) {
+            try {
+              await Organization.bulkWrite(batch);
+              count++;
+              console.log(`Processed batch ${count}`);
+              batch = [];
+            } catch (error) {
+              console.error('Error processing batch:', error);
+              throw error;
+            }
           }
         }
       }
@@ -59,9 +65,9 @@ export default class MulterDiskHandler implements IMulterDiskHandler {
         try {
           await Organization.bulkWrite(batch);
           count++;
-          console.log(count);
+          console.log(`Processed final batch ${count}`);
         } catch (error) {
-          console.error('Error processing batch:', error);
+          console.error('Error processing final batch:', error);
           throw error;
         }
       }
@@ -96,45 +102,44 @@ export default class MulterDiskHandler implements IMulterDiskHandler {
       const organizationMap = new Map(organizations.map((org) => [org.code, org._id]));
 
       for await (const row of stream) {
-        if (!this.validateRowIalStat(row)) anyArr.push(row);
+        if (row.organization_code && row.ial_status) {
+          const organizationId = organizationMap.get(row.organization_code);
+          if (!organizationId) continue;
 
-        const organizationId = organizationMap.get(row.organization_code);
-
-        batch.push({
-          updateOne: {
-            filter: { organizationId, dateCutoff: new Date(row.date_cutoff) },
-            update: {
-              $set: {
-                organizationId,
-                totalPopulation: row.total_population,
+          batch.push({
+            updateOne: {
+              filter: {
+                organizationId: organizationId,
                 dateCutoff: new Date(row.date_cutoff),
-                organizationCode: row.organization_code,
-                organizationName: row.organization_name,
-                subdistrictName: row.subdistrict_health,
-                districtName: row.district_health,
-                provinceName: row.province_health,
-                regionName: row.service_area_health,
               },
-              $push: {
-                ialStats: {
-                  status: row.ial_status,
-                  count: parseInt(row.count_ial, 10),
+              update: {
+                $set: {
+                  totalPopulation: row.total_population || '0',
+                  organizationCode: row.organization_code,
+                  organizationName: row.organization_name || 'Unknown',
+                  subdistrictName: row.subdistrict_health || 'Unknown',
+                  districtName: row.district_health || 'Unknown',
+                  provinceName: row.province_health || row.province || 'Unknown',
+                  regionName: row.service_area_health || 'Unknown',
+                },
+                $inc: {
+                  [`ialStats.${row.ial_status}`]: row.count_ial || 0,
                 },
               },
+              upsert: true,
             },
-            upsert: true,
-          },
-        });
+          });
 
-        if (batch.length >= batchSize) {
-          try {
-            await IALStat.bulkWrite(batch);
-            count++;
-            console.log(count);
-            batch = [];
-          } catch (error) {
-            console.error('Error processing batch:', error);
-            throw error;
+          if (batch.length >= batchSize) {
+            try {
+              await IALStat.bulkWrite(batch);
+              count++;
+              console.log(`Processed batch ${count}`);
+              batch = [];
+            } catch (error) {
+              console.error('Error processing batch:', error);
+              throw error;
+            }
           }
         }
       }
@@ -143,7 +148,7 @@ export default class MulterDiskHandler implements IMulterDiskHandler {
         try {
           await IALStat.bulkWrite(batch);
           count++;
-          console.log(count);
+          console.log(`Processed final batch ${count}`);
         } catch (error) {
           console.error('Error processing batch:', error);
           throw error;
@@ -161,18 +166,5 @@ export default class MulterDiskHandler implements IMulterDiskHandler {
       console.error('Error processing file:', error);
       return res.status(500).json({ status: false, message: 'An error occurred while processing the file.' }).end();
     }
-  };
-
-  private validateRowOrg = (row: any): boolean => {
-    return (
-      row.organization_code &&
-      row.organization_name &&
-      typeof row.organization_name === 'string' &&
-      row.organization_name.trim() !== ''
-    );
-  };
-
-  private validateRowIalStat = (row: any): boolean => {
-    return row.ial_status && row.organization_code && !isNaN(parseInt(row.count_ial, 10));
   };
 }

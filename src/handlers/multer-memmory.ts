@@ -6,6 +6,40 @@ import { parse } from 'csv-parse';
 
 import { District, Province, Region, Subdistrict } from '../models';
 
+interface ITimestampDto {
+  created_at: Date;
+  updated_at: Date;
+  deleted_at: Date | null;
+}
+
+interface IRegionCsvDto {
+  code: string;
+  name: string;
+}
+
+interface IProvinceCsvDto {
+  code: string;
+  nameTh: string;
+  nameEn: string;
+  regionId: string;
+  geographyCode: string;
+}
+
+interface IDistrictCsvDto extends ITimestampDto {
+  id: string;
+  name_th: string;
+  name_en: string;
+  province_id: string;
+}
+
+interface ISubdistrictCsvDto extends ITimestampDto {
+  id: string;
+  zipcode: string;
+  name_th: string;
+  name_en: string;
+  amphure_id: string;
+}
+
 interface IMulterMemmoryHandler {
   createRegions: RequestHandler<ParamsDictionary, any, any, ParsedQs, Record<string, any>>;
   createProvinces: RequestHandler<ParamsDictionary, any, any, ParsedQs, Record<string, any>>;
@@ -19,7 +53,7 @@ export default class MulterMemmoryHandler implements IMulterMemmoryHandler {
 
     const parser = { delimiter: ',', columns: true };
 
-    return parse(req.file.buffer.toString(), parser, async (error, regions: any[]) => {
+    return parse(req.file.buffer.toString(), parser, async (error, regions: IRegionCsvDto[]) => {
       if (error) {
         console.error('Error parsing CSV:', error);
         return res.status(500).json({ status: false, message: 'Error processing CSV file' }).end();
@@ -70,7 +104,7 @@ export default class MulterMemmoryHandler implements IMulterMemmoryHandler {
 
     const parser = { delimiter: ',', columns: true };
 
-    return parse(req.file.buffer.toString(), parser, async (error, provinces: any[]) => {
+    return parse(req.file.buffer.toString(), parser, async (error, provinces: IProvinceCsvDto[]) => {
       if (error) {
         console.error('Error parsing CSV:', error);
         return res.status(500).send('Error processing CSV file');
@@ -129,7 +163,7 @@ export default class MulterMemmoryHandler implements IMulterMemmoryHandler {
 
     const parser = { delimiter: ',', columns: true };
 
-    return parse(req.file.buffer.toString(), parser, async (error, districts: any[]) => {
+    return parse(req.file.buffer.toString(), parser, async (error, districts: IDistrictCsvDto[]) => {
       if (error) {
         console.error('Error parsing CSV:', error);
         return res.status(500).send('Error processing CSV file');
@@ -188,7 +222,7 @@ export default class MulterMemmoryHandler implements IMulterMemmoryHandler {
 
     const parser = { delimiter: ',', columns: true };
 
-    return parse(req.file.buffer.toString(), parser, async (error, subdistricts: any[]) => {
+    return parse(req.file.buffer.toString(), parser, async (error, subdistricts: ISubdistrictCsvDto[]) => {
       if (error) {
         console.error('Error parsing CSV:', error);
         return res.status(500).send('Error processing CSV file');
