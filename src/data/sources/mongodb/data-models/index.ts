@@ -9,8 +9,6 @@ const regionSchema: Schema<IRegion> = new Schema(
   { timestamps: true }
 );
 
-regionSchema.index({ code: 1 });
-
 const provinceSchema: Schema<IProvince> = new Schema(
   {
     code: { type: String, required: true, unique: true },
@@ -21,9 +19,6 @@ const provinceSchema: Schema<IProvince> = new Schema(
   { timestamps: true }
 );
 
-provinceSchema.index({ code: 1 });
-provinceSchema.index({ regionId: 1 });
-
 const districtSchema: Schema<IDistrict> = new Schema(
   {
     code: { type: String, required: true, unique: true },
@@ -33,9 +28,6 @@ const districtSchema: Schema<IDistrict> = new Schema(
   },
   { timestamps: true }
 );
-
-districtSchema.index({ code: 1 });
-districtSchema.index({ provinceId: 1 });
 
 const subdistrictSchema: Schema<ISubdistrict> = new Schema(
   {
@@ -48,10 +40,6 @@ const subdistrictSchema: Schema<ISubdistrict> = new Schema(
   { timestamps: true }
 );
 
-subdistrictSchema.index({ code: 1 });
-subdistrictSchema.index({ districtId: 1 });
-subdistrictSchema.index({ zipcode: 1 });
-
 const organizationSchema: Schema<IOrganization> = new Schema(
   {
     code: { type: String, required: true, unique: true },
@@ -60,9 +48,6 @@ const organizationSchema: Schema<IOrganization> = new Schema(
   },
   { timestamps: true }
 );
-
-organizationSchema.index({ code: 1 });
-organizationSchema.index({ subdistrictId: 1 });
 
 const ialstatSchema: Schema<IIALStat> = new Schema(
   {
@@ -79,23 +64,6 @@ const ialstatSchema: Schema<IIALStat> = new Schema(
   },
   { timestamps: true }
 );
-
-ialstatSchema.index({ dateCutoff: -1 });
-ialstatSchema.index({ 'ialStats.status': 1 });
-ialstatSchema.index({ organizationId: 1 });
-ialstatSchema.index({ organizationCode: 1 });
-ialstatSchema.index({ organizationName: 1 });
-ialstatSchema.index({ subdistrictName: 1 });
-ialstatSchema.index({ districtName: 1 });
-ialstatSchema.index({ provinceName: 1 });
-ialstatSchema.index({ regionName: 1 });
-ialstatSchema.index({ 'ialStats.status': 1, organizationCode: 1, organizationName: 1 });
-ialstatSchema.index({ 'ialStats.status': 1, organizationCode: 1 });
-ialstatSchema.index({ 'ialStats.status': 1, organizationName: 1 });
-ialstatSchema.index({ 'ialStats.status': 1, subdistrictName: 1 });
-ialstatSchema.index({ 'ialStats.status': 1, districtName: 1 });
-ialstatSchema.index({ 'ialStats.status': 1, provinceName: 1 });
-ialstatSchema.index({ 'ialStats.status': 1, regionName: 1 });
 
 export const Region = mongoose.model<IRegion>('regions', regionSchema, 'regions');
 export const Province = mongoose.model<IProvince>('provinces', provinceSchema, 'provinces');
