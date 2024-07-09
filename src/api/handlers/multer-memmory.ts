@@ -3,8 +3,7 @@ import { RequestHandler } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 
 import { parse } from 'csv-parse';
-
-import { District, Province, Region, Subdistrict } from '../models';
+import { District, Province, Region, Subdistrict } from '../../data/sources/mongodb/data-models';
 
 interface ITimestampDto {
   created_at: Date;

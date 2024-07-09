@@ -1,7 +1,9 @@
 import 'dotenv/config';
+
 import mongoose from 'mongoose';
-import { MongoClient, ObjectId } from 'mongodb';
-import { IALStat, Organization, Subdistrict } from '../models';
+import { FindCursor, MongoClient, ObjectId, WithId } from 'mongodb';
+
+import { IALStat, Organization, Subdistrict } from '../../data/sources/mongodb/data-models';
 
 interface CollectionHealthId extends Document {
   _id: ObjectId;
@@ -33,15 +35,13 @@ let round = 0;
 let batch: any[] = [];
 const batchSize = 5000;
 
-const createOrganization = async () => {
-  const cursor = collection.find({});
-
-  const subdistricts = await Subdistrict.find().lean();
+const createOrganization = async (cursor: FindCursor<WithId<CollectionHealthId>>) => {
+  const subdistricts = await Subdistrict.find({}, 'nameTh _id').lean();
   const subdistrictMap = new Map(subdistricts.map((s) => [s.nameTh, s._id]));
 
   for await (const row of cursor) {
     const subdistrictId = subdistrictMap.get(row.subdistrict_health as string);
-    if (!subdistrictId) continue; // Skip if organization not found
+    if (!subdistrictId) continue;
 
     if (row.organization_code) {
       batch.push({
@@ -65,6 +65,7 @@ const createOrganization = async () => {
           batch = [];
         } catch (error) {
           console.error('Error processing batch:', error);
+          throw error;
         }
       }
     }
@@ -77,6 +78,68 @@ const createOrganization = async () => {
       console.log(`Processed final batch ${round}`);
     } catch (error) {
       console.error('Error processing final batch:', error);
+      throw error;
+    }
+  }
+
+  console.log('Data imported successfully');
+};
+
+const createIalStat = async (cursor: FindCursor<WithId<CollectionHealthId>>) => {
+  const organizations = await Organization.find({}, 'code _id').lean();
+  const organizationMap = new Map(organizations.map((org) => [org.code, org._id]));
+
+  for await (const row of cursor) {
+    if (row.organization_code && row.ial_status) {
+      const organizationId = organizationMap.get(row.organization_code);
+      if (!organizationId) continue;
+
+      batch.push({
+        updateOne: {
+          filter: {
+            organizationId: organizationId,
+            dateCutoff: row.date_cutoff,
+          },
+          update: {
+            $set: {
+              totalPopulation: row.total_population || '0',
+              organizationCode: row.organization_code,
+              organizationName: row.organization_name || 'Unknown',
+              subdistrictName: row.subdistrict_health || 'Unknown',
+              districtName: row.district_health || 'Unknown',
+              provinceName: row.province_health || row.province || 'Unknown',
+              regionName: row.service_area_health || 'Unknown',
+            },
+            $inc: {
+              [`ialStats.${row.ial_status}`]: row.count_ial || 0,
+            },
+          },
+          upsert: true,
+        },
+      });
+
+      if (batch.length >= batchSize) {
+        try {
+          await IALStat.bulkWrite(batch);
+          round++;
+          console.log(`Processed batch ${round}`);
+          batch = [];
+        } catch (error) {
+          console.error('Error processing batch:', error);
+          throw error;
+        }
+      }
+    }
+  }
+
+  if (batch.length > 0) {
+    try {
+      await IALStat.bulkWrite(batch);
+      round++;
+      console.log(`Processed final batch ${round}`);
+    } catch (error) {
+      console.error('Error processing final batch:', error);
+      throw error;
     }
   }
 
@@ -86,62 +149,10 @@ const createOrganization = async () => {
 const main = async (): Promise<void> => {
   try {
     const cursor = collection.find({});
-
-    const organizationMap = new Map((await Organization.find({}, 'code _id').lean()).map((org) => [org.code, org._id]));
-
-    for await (const row of cursor) {
-      if (row.organization_code && row.ial_status) {
-        const organizationId = organizationMap.get(row.organization_code);
-        if (!organizationId) continue; // Skip if organization not found
-
-        batch.push({
-          updateOne: {
-            filter: {
-              organizationId: organizationId,
-              dateCutoff: row.date_cutoff,
-            },
-            update: {
-              $set: {
-                totalPopulation: row.total_population || '0',
-                organizationCode: row.organization_code,
-                organizationName: row.organization_name || 'Unknown',
-                subdistrictName: row.subdistrict_health || 'Unknown',
-                districtName: row.district_health || 'Unknown',
-                provinceName: row.province_health || row.province || 'Unknown',
-                regionName: row.service_area_health || 'Unknown',
-              },
-              $inc: {
-                [`ialStats.${row.ial_status}`]: row.count_ial || 0,
-              },
-            },
-            upsert: true,
-          },
-        });
-
-        if (batch.length >= batchSize) {
-          try {
-            await IALStat.bulkWrite(batch);
-            round++;
-            console.log(`Processed batch ${round}`);
-            batch = [];
-          } catch (error) {
-            console.error('Error processing batch:', error);
-          }
-        }
-      }
-    }
-
-    if (batch.length > 0) {
-      try {
-        await IALStat.bulkWrite(batch);
-        round++;
-        console.log(`Processed final batch ${round}`);
-      } catch (error) {
-        console.error('Error processing final batch:', error);
-      }
-    }
-
-    console.log('Data imported successfully');
+    await createOrganization(cursor);
+    console.log('Created organization successfully');
+    await createIalStat(cursor);
+    console.log('Created ial stat successfully');
   } catch (error) {
     console.error('Error during import process:', error);
   }

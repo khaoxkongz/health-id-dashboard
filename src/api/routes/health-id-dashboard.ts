@@ -1,7 +1,7 @@
 import { Router } from 'express';
 
-import HealthIdDashboardRepository from '../repositories/health-id-dashboard';
-import HealthIdDashboardUsecase from '../usecases/health-id-dashboard';
+import HealthIdDashboardRepository from '../../domain/repositories/health-id-dashboard';
+import HealthIdDashboardUsecase from '../../domain/usecases/health-id-dashboard';
 import HealthIdDashboardHandler from '../handlers/health-id-dashboard';
 
 const repository = new HealthIdDashboardRepository();

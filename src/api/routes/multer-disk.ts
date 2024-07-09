@@ -18,11 +18,11 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage, fileFilter });
 
-const router = Router();
+const multerDiskRouter = Router();
 
-router.use(upload.single('csv'));
+multerDiskRouter.use(upload.single('csv'));
 
-router.post('/organizations', new MulterDiskHandler().createOrganization);
-router.post('/ial-stats', new MulterDiskHandler().createIalStat);
+multerDiskRouter.post('/organizations', new MulterDiskHandler().createOrganization);
+multerDiskRouter.post('/ial-stats', new MulterDiskHandler().createIalStat);
 
-export default router;
+export default multerDiskRouter;

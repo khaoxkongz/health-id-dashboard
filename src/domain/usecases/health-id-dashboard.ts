@@ -1,5 +1,5 @@
-import { IALStat } from '../models';
-import { IIALStat } from '../models/type';
+import { IALStat } from '../../data/sources/mongodb/data-models';
+import { IIALStat } from '../../data/sources/mongodb/data-models/type';
 import { FilterBodyConditions, IHealthIdDashboardRepository } from '../repositories/health-id-dashboard';
 
 export interface IHealthIdDashboardUsecase {

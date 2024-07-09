@@ -1,5 +1,5 @@
 import { ObjectId } from 'mongoose';
-import { IALStat } from '../models';
+import { IALStat } from '../../data/sources/mongodb/data-models';
 
 export interface FilterConditions {
   search: string;

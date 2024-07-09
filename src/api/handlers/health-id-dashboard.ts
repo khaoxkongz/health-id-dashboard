@@ -2,8 +2,8 @@ import { ParsedQs } from 'qs';
 import { RequestHandler } from 'express';
 import { ParamsDictionary } from 'express-serve-static-core';
 
-import { FilterBodyConditions } from '../repositories/health-id-dashboard';
-import { IHealthIdDashboardUsecase } from '../usecases/health-id-dashboard';
+import { FilterBodyConditions } from '../../domain/repositories/health-id-dashboard';
+import { IHealthIdDashboardUsecase } from '../../domain/usecases/health-id-dashboard';
 
 interface IHealthIdDashboardHandler {
   fetchGeolocation: RequestHandler<ParamsDictionary, any, any, ParsedQs, Record<string, any>>;

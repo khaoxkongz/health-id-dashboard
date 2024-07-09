@@ -14,13 +14,13 @@ const fileFilter = (_req: Request, file: Express.Multer.File, cb: multer.FileFil
 const storage = multer.memoryStorage();
 const upload = multer({ storage, fileFilter, limits: { fileSize: 1024 * 1024 * 5 } });
 
-const router = Router();
+const multerMemmoryRouter = Router();
 
-router.use(upload.single('csv'));
+multerMemmoryRouter.use(upload.single('csv'));
 
-router.post('/regions', new MulterMemmoryHandler().createRegions);
-router.post('/provinces', new MulterMemmoryHandler().createProvinces);
-router.post('/districts', new MulterMemmoryHandler().createDistricts);
-router.post('/subdistricts', new MulterMemmoryHandler().createSubdistricts);
+multerMemmoryRouter.post('/regions', new MulterMemmoryHandler().createRegions);
+multerMemmoryRouter.post('/provinces', new MulterMemmoryHandler().createProvinces);
+multerMemmoryRouter.post('/districts', new MulterMemmoryHandler().createDistricts);
+multerMemmoryRouter.post('/subdistricts', new MulterMemmoryHandler().createSubdistricts);
 
-export default router;
+export default multerMemmoryRouter;

@@ -6,10 +6,9 @@ import express, { Express } from 'express';
 import cors from 'cors';
 import { Server } from 'http';
 
-import multerDiskRouter from './routes/multer-disk';
-import multerMemmoryRouter from './routes/multer-memmory';
-
-import healthIdDashboardRouter from './routes/health-id-dashboard';
+import multerDiskRouter from './api/routes/multer-disk';
+import multerMemmoryRouter from './api/routes/multer-memmory';
+import healthIdDashboardRouter from './api/routes/health-id-dashboard';
 
 const PORT = process.env.PORT;
 const MONGODB_URI = process.env.MONGODB_URI;

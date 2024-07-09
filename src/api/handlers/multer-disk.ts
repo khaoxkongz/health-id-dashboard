@@ -5,7 +5,7 @@ import { ParsedQs } from 'qs';
 import { ParamsDictionary } from 'express-serve-static-core';
 import { RequestHandler } from 'express';
 
-import { IALStat, Organization, Subdistrict } from '../models';
+import { IALStat, Organization, Subdistrict } from '../../data/sources/mongodb/data-models';
 
 interface IMulterDiskHandler {
   createOrganization: RequestHandler<ParamsDictionary, any, any, ParsedQs, Record<string, any>>;
@@ -55,7 +55,7 @@ export default class MulterDiskHandler implements IMulterDiskHandler {
               batch = [];
             } catch (error) {
               console.error('Error processing batch:', error);
-              throw error;
+              return res.status(500).send('Error processing batch');
             }
           }
         }
@@ -68,7 +68,7 @@ export default class MulterDiskHandler implements IMulterDiskHandler {
           console.log(`Processed final batch ${count}`);
         } catch (error) {
           console.error('Error processing final batch:', error);
-          throw error;
+          return res.status(500).send('Error processing final batch');
         }
       }
 
@@ -138,7 +138,7 @@ export default class MulterDiskHandler implements IMulterDiskHandler {
               batch = [];
             } catch (error) {
               console.error('Error processing batch:', error);
-              throw error;
+              return res.status(500).send('Error processing batch');
             }
           }
         }
@@ -150,8 +150,8 @@ export default class MulterDiskHandler implements IMulterDiskHandler {
           count++;
           console.log(`Processed final batch ${count}`);
         } catch (error) {
-          console.error('Error processing batch:', error);
-          throw error;
+          console.error('Error processing final batch:', error);
+          return res.status(500).send('Error processing final batch');
         }
       }
 
