@@ -39,7 +39,7 @@ export default class HealthIdDashboardUsecase implements IHealthIdDashboardUseca
     return { ...dto };
   };
 
-  private calculateTotalCountIdAll = (allIalStats: any[]): number => {
+  private calculateTotalCountIdAll = (allIalStats: IIALStat[]): number => {
     return allIalStats.reduce((total, stat) => {
       let countIdOtp = 0;
       let countIdCard = 0;
